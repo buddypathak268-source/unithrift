@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ThriftDrop ✦</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --p:#c084fc;--pd:#a855f7;--pdd:#7c3aed;--pl:#f3e8ff;--pll:#faf5ff;
+  --a:#fb923c;--al:#fff7ed;
+  --y:#facc15;--yl:#fefce8;
+  --g:#4ade80;--gl:#f0fdf4;
+  --b:#60a5fa;--bl:#eff6ff;
+  --pk:#f472b6;--pkl:#fdf2f8;
+  --bg:#0a0a0f;--bg2:#13131a;--bg3:#1c1c26;
+  --card:#1a1a24;--card2:#222230;
+  --border:#2e2e42;--border2:#3d3d56;
+  --text:#f0f0ff;--text2:#a0a0c0;--text3:#606080;
+  --radius:12px;--radius-lg:18px;--radius-xl:24px;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;}
+.shell{width:100%;max-width:390px;background:var(--bg2);border-radius:28px;overflow:hidden;min-height:720px;display:flex;flex-direction:column;border:1px solid var(--border2);position:relative;}
+
+/* TOPBAR */
+.topbar{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2);}
+.logo{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-0.5px;}
+.logo span{color:var(--p);}
+.logo .dot{color:var(--a);font-size:22px;}
+.tagline{font-size:10px;color:var(--text3);margin-top:1px;font-family:'DM Mono',monospace;}
+.notif{width:32px;height:32px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
+
+/* SCREEN */
+.screen-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+
+/* NAV */
+.bottom-nav{display:flex;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg2);padding:4px 8px 8px;}
+.nav-btn{flex:1;padding:8px 4px 6px;font-size:9px;background:none;border:none;cursor:pointer;color:var(--text3);display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Space Grotesk',sans-serif;border-radius:10px;transition:all .15s;}
+.nav-btn.active{color:var(--p);background:rgba(192,132,252,0.1);}
+.nav-icon{font-size:16px;}
+
+/* BUTTONS */
+.btn{width:100%;padding:13px;background:var(--p);color:#0a0a0f;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;letter-spacing:0.01em;transition:opacity .15s;}
+.btn:active{opacity:.85;}
+.btn.green{background:var(--g);color:#0a0a0f;}
+.btn.outline{background:transparent;border:1px solid var(--border2);color:var(--text);font-weight:500;}
+.btn.red-outline{background:transparent;border:1px solid #7f1d1d;color:#f87171;font-weight:500;}
+
+/* INPUTS */
+.field{margin-bottom:14px;}
+.field label{font-size:11px;color:var(--text3);display:block;margin-bottom:5px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;}
+.field input,.field select,.field textarea{width:100%;font-size:13px;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg3);color:var(--text);font-family:'Space Grotesk',sans-serif;outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p);}
+.field textarea{resize:none;height:64px;}
+.field select option{background:var(--bg3);}
+
+/* CHIP */
+.chip{padding:5px 12px;border-radius:99px;font-size:11px;white-space:nowrap;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:var(--bg3);font-family:'Space Grotesk',sans-serif;font-weight:500;transition:all .15s;}
+.chip.active{background:var(--pl);color:var(--pdd);border-color:var(--pd);}
+
+/* BADGE */
+.badge{font-size:9px;padding:3px 8px;border-radius:99px;font-weight:700;letter-spacing:.04em;font-family:'DM Mono',monospace;}
+.badge.hot{background:#431407;color:var(--a);}
+.badge.new-badge{background:#134e4a;color:#34d399;}
+.badge.fair{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.badge.out{background:#431407;color:var(--a);}
+.badge.done{background:#14532d;color:#86efac;}
+
+/* TAG */
+.tag{padding:4px 10px;border-radius:99px;font-size:10px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);font-family:'DM Mono',monospace;}
+
+/* AV */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace;}
+
+/* ── AUTH ── */
+.auth-page{flex:1;display:flex;flex-direction:column;}
+.splash{align-items:center;justify-content:center;padding:40px 28px;text-align:center;background:var(--bg2);}
+.splash-blob{width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,var(--p),var(--pk));display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 22px;}
+.splash h1{font-size:30px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-1px;}
+.splash h1 span{color:var(--p);}
+.splash>p{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:26px;}
+.pill-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:30px;}
+.pill{padding:5px 12px;border-radius:99px;font-size:11px;border:1px solid var(--border2);color:var(--text2);background:var(--bg3);font-family:'DM Mono',monospace;}
+.auth-form{padding:26px 22px;display:flex;flex-direction:column;flex:1;}
+.back-btn{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);margin-bottom:20px;text-align:left;font-family:'Space Grotesk',sans-serif;}
+.auth-form h2{font-size:20px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.form-sub{font-size:12px;color:var(--text2);margin-bottom:22px;line-height:1.6;}
+.google-btn{width:100%;padding:11px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg3);font-size:13px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Space Grotesk',sans-serif;margin-bottom:4px;}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:40px;}
+.pw-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:15px;cursor:pointer;color:var(--text3);}
+.hint{font-size:10px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;}
+.err-msg{font-size:11px;color:#f87171;margin-bottom:10px;padding:8px 12px;background:#450a0a;border-radius:8px;border:1px solid #7f1d1d;}
+.switch-txt{font-size:12px;color:var(--text2);text-align:center;}
+.switch-txt a,.link{color:var(--p);cursor:pointer;font-weight:600;}
+.terms{font-size:10px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.6;font-family:'DM Mono',monospace;}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.divider hr{flex:1;border:none;border-top:1px solid var(--border);}
+.divider span{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.otp-icon{width:56px;height:56px;border-radius:16px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.otp-boxes{display:flex;gap:10px;margin:20px 0 8px;justify-content:center;}
+.otp-box{width:54px;height:60px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg3);font-size:24px;font-weight:700;text-align:center;color:var(--text);outline:none;font-family:'DM Mono',monospace;}
+.otp-box:focus{border-color:var(--p);}
+.resend{font-size:12px;color:var(--text2);text-align:center;margin:10px 0 20px;}
+.resend a{color:var(--p);cursor:pointer;font-weight:600;}
+.welcome-page{align-items:center;justify-content:center;padding:36px 28px;text-align:center;}
+.welcome-av{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pk));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#0a0a0f;margin:0 auto 20px;font-family:'DM Mono',monospace;}
+.welcome-page h2{font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.welcome-page>p{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:26px;}
+.badge-row{display:flex;gap:8px;justify-content:center;margin-bottom:28px;}
+.wbadge{padding:6px 14px;border-radius:99px;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;}
+.wbadge.purple{background:rgba(192,132,252,.15);color:var(--p);border:1px solid rgba(192,132,252,.3);}
+.wbadge.green{background:rgba(74,222,128,.12);color:var(--g);border:1px solid rgba(74,222,128,.25);}
+
+/* ── BROWSE ── */
+.search-wrap{padding:12px 14px 5px;}
+.search-bar{display:flex;align-items:center;gap:9px;background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:9px 16px;}
+.search-bar input{flex:1;border:none;background:transparent;font-size:13px;color:var(--text);outline:none;font-family:'Space Grotesk',sans-serif;}
+.search-bar input::placeholder{color:var(--text3);}
+.filter-row{display:flex;gap:7px;padding:10px 14px 5px;overflow-x:auto;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.sec-label{padding:5px 14px 9px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:var(--border2);}
+.card:active{opacity:.88;}
+.card-img{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;}
+.card-badge{position:absolute;top:8px;left:8px;}
+.wish-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all .15s;}
+.wish-btn.wished{color:#f472b6;border-color:#f472b6;}
+.card-body{padding:9px 11px 11px;}
+.card-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.card-price{font-size:14px;font-weight:700;color:var(--p);margin-top:2px;}
+.card-meta{font-size:9px;color:var(--text3);margin-top:4px;display:flex;justify-content:space-between;font-family:'DM Mono',monospace;}
+
+/* ── DETAIL ── */
+.detail-overlay{position:absolute;inset:0;background:var(--bg2);z-index:30;display:flex;flex-direction:column;overflow-y:auto;border-radius:28px;}
+.detail-img{width:100%;aspect-ratio:1.1;display:flex;align-items:center;justify-content:center;font-size:80px;position:relative;flex-shrink:0;}
+.back-abs{position:absolute;top:14px;left:14px;width:34px;height:34px;border-radius:12px;background:rgba(0,0,0,.6);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--text);z-index:2;}
+.detail-body{padding:16px 18px 24px;}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.detail-name{font-size:18px;font-weight:700;color:var(--text);}
+.detail-price{font-size:20px;font-weight:700;color:var(--p);}
+.detail-sub{font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'DM Mono',monospace;}
+.seller-row{display:flex;align-items:center;gap:11px;padding:11px 0;margin-bottom:13px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.seller-name{font-size:13px;font-weight:600;color:var(--text);}
+.seller-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.detail-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:13px;}
+.tags-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px;}
+.del-note{background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.2);border-radius:var(--radius);padding:10px 13px;font-size:12px;color:var(--p);margin-bottom:16px;display:flex;gap:9px;align-items:center;}
+.act-row{display:flex;gap:9px;}
+
+/* ── SELL ── */
+.sell-wrap{padding:16px 16px 28px;}
+.sell-wrap h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.upload-box{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:24px;text-align:center;margin-bottom:14px;color:var(--text3);font-size:13px;cursor:pointer;background:var(--bg3);}
+.upload-plus{font-size:26px;margin-bottom:6px;color:var(--p);}
+.photo-preview{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.photo-thumb{width:52px;height:52px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;}
+.ctags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.success-msg{margin-top:12px;padding:11px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:var(--radius);font-size:12px;color:var(--g);text-align:center;font-weight:600;}
+
+/* ── DELIVERY ── */
+.delivery-wrap{padding:16px;}
+.delivery-wrap h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.ord-card{background:var(--card);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;border:1px solid var(--border);}
+.ord-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.ord-title{font-size:13px;font-weight:600;color:var(--text);}
+.track-step{display:flex;align-items:flex-start;gap:10px;}
+.track-left{display:flex;flex-direction:column;align-items:center;}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.dot-g{background:var(--g);box-shadow:0 0 6px rgba(74,222,128,.5);}
+.dot-p{background:var(--p);box-shadow:0 0 6px rgba(192,132,252,.5);}
+.dot-grey{background:var(--border2);}
+.tline{width:1px;height:16px;background:var(--border);}
+.tlabel{font-size:11px;color:var(--text3);padding:1px 0 7px;font-family:'DM Mono',monospace;}
+.tlabel.bold{color:var(--text);font-weight:600;}
+.tlabel.active-lbl{color:var(--p);}
+.map-box{background:var(--bg3);border-radius:var(--radius);height:100px;margin-top:12px;overflow:hidden;border:1px solid var(--border);}
+.rider-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.rider-name{font-size:12px;font-weight:600;color:var(--text);}
+.rider-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.call-btn{margin-left:auto;padding:6px 14px;border-radius:99px;border:1px solid var(--border2);background:var(--bg3);font-size:11px;cursor:pointer;color:var(--text);font-family:'Space Grotesk',sans-serif;font-weight:600;}
+
+/* ── CHAT ── */
+.chat-list-view{padding:16px;}
+.chat-list-view h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:13px;}
+.ci{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.ci:last-child{border-bottom:none;}
+.ci-meta{flex:1;min-width:0;}
+.ci-name{font-size:13px;font-weight:600;color:var(--text);}
+.ci-prev{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-time{font-size:10px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--p);margin-top:6px;flex-shrink:0;}
+.chat-thread{display:flex;flex-direction:column;flex:1;}
+.thread-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.thread-name{font-size:13px;font-weight:600;color:var(--text);}
+.thread-sub{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.msgs-area{flex:1;padding:13px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;min-height:300px;}
+.msg{max-width:76%;}
+.bubble{padding:9px 13px;border-radius:15px;font-size:12px;line-height:1.6;}
+.msg.me{align-self:flex-end;}
+.msg.me .bubble{background:var(--pd);color:#fff;border-bottom-right-radius:4px;}
+.msg.them .bubble{background:var(--card2);color:var(--text);border-bottom-left-radius:4px;}
+.mtime{font-size:9px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace;}
+.msg.me .mtime{text-align:right;}
+.inp-row{padding:11px 13px;border-top:1px solid var(--border);display:flex;gap:9px;align-items:center;flex-shrink:0;}
+.inp-row input{flex:1;font-size:13px;padding:9px 14px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'Space Grotesk',sans-serif;outline:none;}
+.inp-row input:focus{border-color:var(--p);}
+.inp-row input::placeholder{color:var(--text3);}
+.send-btn{width:34px;height:34px;border-radius:50%;background:var(--pd);color:white;border:none;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ── PROFILE ── */
+.prof-banner{height:88px;background:linear-gradient(135deg,rgba(192,132,252,.25),rgba(244,114,182,.15));position:relative;border-bottom:1px solid var(--border);}
+.prof-av-wrap{position:relative;height:36px;}
+.prof-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pk));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#0a0a0f;border:3px solid var(--bg2);position:absolute;bottom:-32px;left:18px;font-family:'DM Mono',monospace;}
+.prof-body{padding:40px 18px 28px;}
+.prof-name{font-size:18px;font-weight:700;color:var(--text);}
+.prof-sub{font-size:11px;color:var(--text3);margin-top:3px;margin-bottom:16px;font-family:'DM Mono',monospace;}
+.prof-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:20px;}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:12px;text-align:center;border:1px solid var(--border);}
+.stat-num{font-size:20px;font-weight:700;color:var(--p);}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;}
+.sec-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:11px;font-family:'DM Mono',monospace;}
+.listing-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px;}
+.mini-card{background:var(--card);border-radius:var(--radius);padding:11px;display:flex;align-items:center;gap:10px;border:1px solid var(--border);cursor:pointer;}
+.mini-emoji{font-size:22px;}
+.mini-name{font-size:11px;font-weight:600;color:var(--text);}
+.mini-price{font-size:12px;color:var(--p);font-weight:700;}
+.mini-cond{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;}
+.review-item{padding:11px 0;border-bottom:1px solid var(--border);}
+.review-item:last-of-type{border-bottom:none;}
+.rev-head{display:flex;justify-content:space-between;align-items:center;}
+.rev-name{font-size:12px;font-weight:600;color:var(--text);}
+.stars{color:var(--y);font-size:12px;}
+.rev-text{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useRef,useEffect}=React;
+
+const ITEMS=[
+  {id:1,emoji:"🧥",name:"Vintage denim jacket",price:350,cat:"outerwear",condition:"Like new",badge:"hot",seller:"Priya G.",si:"PG",sc:"rgba(192,132,252,.2)",stc:"#c084fc",rating:"4.9 · 12 sales",desc:"Classic 90s wash, barely worn. Fits a medium. Super Y2K coded fr.",tags:["Medium","Denim","Y2K"],dropoff:"Library · ~10 min",bg:"linear-gradient(135deg,#1a1a2e,#2d1f3d)"},
+  {id:2,emoji:"👟",name:"Nike Air Force 1",price:799,cat:"shoes",condition:"Good",badge:"hot",seller:"Arjun S.",si:"AS",sc:"rgba(74,222,128,.2)",stc:"#4ade80",rating:"4.7 · 8 sales",desc:"Size UK 9. One semester use. Lightly creased, soles are clean.",tags:["UK 9","Nike","White"],dropoff:"Hostel A · ~5 min",bg:"linear-gradient(135deg,#0f2210,#1a3520)"},
+  {id:3,emoji:"📚",name:"Thomas Calculus 3rd ed.",price:120,cat:"books",condition:"Fair",badge:"fair",seller:"Rahul K.",si:"RK",sc:"rgba(250,204,21,.2)",stc:"#facc15",rating:"5.0 · 3 sales",desc:"Some highlights in ch. 4–6. Perfect for MA101 bestie.",tags:["MA101","Maths","Exam prep"],dropoff:"Main gate · ~12 min",bg:"linear-gradient(135deg,#1c1500,#2e2200)"},
+  {id:4,emoji:"👗",name:"Floral summer dress",price:280,cat:"tops",condition:"Like new",badge:"new-badge",seller:"Neha M.",si:"NM",sc:"rgba(244,114,182,.2)",stc:"#f472b6",rating:"4.8 · 5 sales",desc:"Wore once to farewell. Size S. Dry cleaned, totally slay.",tags:["Size S","Floral","Slay"],dropoff:"Canteen · ~7 min",bg:"linear-gradient(135deg,#2d0f1a,#1f0a12)"},
+  {id:5,emoji:"🎧",name:"Sony WH-1000XM3",price:2200,cat:"electronics",condition:"Good",badge:"hot",seller:"Dev P.",si:"DP",sc:"rgba(96,165,250,.2)",stc:"#60a5fa",rating:"4.6 · 2 sales",desc:"ANC goated. OG cable + pouch included. Study szn essential.",tags:["Sony","ANC","Study mode"],dropoff:"Sports complex · ~15 min",bg:"linear-gradient(135deg,#0a1628,#0f2040)"},
+  {id:6,emoji:"👖",name:"H&M slim chinos",price:199,cat:"bottoms",condition:"Good",badge:"new-badge",seller:"Simran T.",si:"ST",sc:"rgba(251,146,60,.2)",stc:"#fb923c",rating:"4.5 · 7 sales",desc:"Olive W30 L32. Placement szn approved, lowkey stylish.",tags:["W30","Olive","Placement"],dropoff:"Admin block · ~8 min",bg:"linear-gradient(135deg,#1a0e00,#2a1800)"},
+  {id:7,emoji:"🕶",name:"Retro round sunglasses",price:95,cat:"accessories",condition:"Like new",badge:"new-badge",seller:"Meera R.",si:"MR",sc:"rgba(244,114,182,.2)",stc:"#f472b6",rating:"5.0 · 1 sale",desc:"Brown tort frames. Leh trip souvenir, barely worn, v aesthetic.",tags:["UV400","Unisex","Aesthetic"],dropoff:"Library · ~10 min",bg:"linear-gradient(135deg,#2d1020,#1f0a18)"},
+  {id:8,emoji:"👜",name:"Canvas tote bag",price:80,cat:"accessories",condition:"Good",badge:"fair",seller:"Kabir J.",si:"KJ",sc:"rgba(74,222,128,.2)",stc:"#4ade80",rating:"4.3 · 9 sales",desc:"Thick canvas, no damage. Fits laptop + 3 notebooks easy.",tags:["Canvas","Unisex","Sturdy"],dropoff:"Canteen · ~7 min",bg:"linear-gradient(135deg,#0a1a10,#0d2015)"},
+];
+const CATS=["all","tops","bottoms","outerwear","shoes","accessories","books","electronics"];
+const CONVOS_INIT=[
+  {id:1,name:"Priya G.",init:"PG",sc:"rgba(192,132,252,.2)",stc:"#c084fc",preview:"Is the jacket still available?",time:"2 min ago",unread:true,about:"Vintage denim jacket · ₹350",messages:[{me:false,text:"Hey! Is the jacket still available? 👀",time:"2:10 PM"},{me:false,text:"I'm in Block C, can you deliver?",time:"2:11 PM"},{me:true,text:"Yes! Block C is in range no cap 🙌",time:"2:14 PM"},{me:false,text:"Omg yay, placing order rn!",time:"2:15 PM"}]},
+  {id:2,name:"Arjun S.",init:"AS",sc:"rgba(74,222,128,.2)",stc:"#4ade80",preview:"Thanks! picking up at the gate",time:"1 hr ago",unread:false,about:"Calculus textbook · ₹120",messages:[{me:false,text:"Is this the 3rd edition fr?",time:"11:05 AM"},{me:true,text:"Yep, Thomas Calculus 3rd ed. Condition is good!",time:"11:08 AM"},{me:false,text:"Thanks bro! picking up at gate",time:"11:32 AM"}]},
+  {id:3,name:"Neha M.",init:"NM",sc:"rgba(244,114,182,.2)",stc:"#f472b6",preview:"Can you do ₹180 for the bag?",time:"Yesterday",unread:false,about:"Canvas tote bag · ₹80",messages:[{me:false,text:"Can you do ₹180 for the bag? 🥺",time:"Yesterday"},{me:true,text:"Bestie it's ₹80, already a steal lol",time:"Yesterday"},{me:false,text:"LMAO ok ok I'll take it",time:"Yesterday"}]},
+];
+
+function GoogleIcon(){return(<svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>);}
+
+function Auth({onLogin}){
+  const [page,setPage]=useState("splash");
+  const [name,setName]=useState("");
+  const [email,setEmail]=useState("");
+  const [pw,setPw]=useState("");
+  const [showPw,setShowPw]=useState(false);
+  const [otp,setOtp]=useState(["","","",""]);
+  const [otpErr,setOtpErr]=useState(false);
+  const [err,setErr]=useState("");
+  const initials=(name.split(" ").map(n=>n[0]).join("").toUpperCase().slice(0,2))||"TD";
+  const firstName=name.split(" ")[0]||name;
+  function doSignup(){if(!name.trim()||!email.trim()||!pw.trim()){setErr("fill everything in bestie 🙏");return;}setErr("");setOtp(["","","",""]);setOtpErr(false);setPage("otp");}
+  function doOtp(){if(otp.join("")!=="1234"){setOtpErr(true);return;}setOtpErr(false);setPage("welcome");}
+  function doLogin(){if(!email.trim()||!pw.trim()){setErr("need your email + password!");return;}setErr("");const n=email.split("@")[0].replace(/[^a-zA-Z\s]/g," ").trim()||"Student";onLogin(n,n.split(" ").map(x=>x[0]).join("").toUpperCase().slice(0,2)||"ST");}
+  function otpChange(v,i){const next=[...otp];next[i]=v.slice(-1);setOtp(next);if(v&&i<3)document.getElementById("otp"+( i+1))?.focus();}
+  if(page==="splash")return(
+    <div className="auth-page splash" style={{display:"flex"}}>
+      <div className="splash-blob">👕</div>
+      <h1>thrift<span>drop</span><span className="dot"> ✦</span></h1>
+      <p>buy + sell secondhand fits, books & gear —<br/>delivered to your hostel door. no cap.</p>
+      <div className="pill-row"><span className="pill">campus only</span><span className="pill">student verified</span><span className="pill">fast delivery</span></div>
+      <button className="btn" style={{marginBottom:10}} onClick={()=>setPage("signup")}>get started ✦</button>
+      <button className="btn outline" onClick={()=>{setErr("");setPage("login");}}>already have an acc</button>
+    </div>
+  );
+  if(page==="signup")return(
+    <div className="auth-page auth-form">
+      <button className="back-btn" onClick={()=>setPage("splash")}>←</button>
+      <h2>create account ✦</h2><p className="form-sub">use your college email to verify your campus</p>
+      <button className="google-btn"><GoogleIcon/> continue with google</button>
+      <div className="divider"><hr/><span>or</span><hr/></div>
+      <div className="field"><label>full name</label><input type="text" placeholder="e.g. Riya Sharma" value={name} onChange={e=>setName(e.target.value)}/></div>
+      <div className="field"><label>college email</label><input type="email" placeholder="yourname@college.edu.in" value={email} onChange={e=>setEmail(e.target.value)}/><div className="hint">must be a .edu or college domain</div></div>
+      <div className="field"><label>password</label><div className="pw-wrap"><input type={showPw?"text":"password"} placeholder="min 8 characters" value={pw} onChange={e=>setPw(e.target.value)}/><button className="pw-toggle" onClick={()=>setShowPw(p=>!p)}>{showPw?"🙈":"👁"}</button></div></div>
+      {err&&<div className="err-msg">{err}</div>}
+      <button className="btn" onClick={doSignup}>continue →</button>
+      <p className="switch-txt" style={{marginTop:14}}>already have an acc? <a onClick={()=>{setErr("");setPage("login");}}>log in</a></p>
+      <p className="terms">by continuing you agree to thriftdrop's terms + privacy policy</p>
+    </div>
+  );
+  if(page==="otp")return(
+    <div className="auth-page auth-form">
+      <button className="back-btn" onClick={()=>setPage("signup")}>←</button>
+      <div className="otp-icon">📧</div>
+      <h2 style={{marginTop:18}}>check your inbox</h2>
+      <p className="form-sub">sent a 4-digit code to <strong style={{color:"var(--p)"}}>{email}</strong></p>
+      <div className="otp-boxes">{otp.map((v,i)=><input key={i} id={"otp"+i} className="otp-box" type="text" maxLength={1} value={v} onChange={e=>otpChange(e.target.value,i)}/>)}</div>
+      {otpErr&&<p className="err-msg">wrong code bestie. try <strong>1234</strong> for demo</p>}
+      <p className="resend">didn't get it? <a onClick={()=>{setOtp(["","","",""]);setOtpErr(false);}}>resend code</a></p>
+      <button className="btn" onClick={doOtp}>verify email ✦</button>
+    </div>
+  );
+  if(page==="welcome")return(
+    <div className="auth-page welcome-page" style={{display:"flex"}}>
+      <div className="welcome-av">{initials}</div>
+      <h2>welcome, {firstName}! ✦</h2>
+      <p>campus verified. you're ready to thrift, sell, and slay.</p>
+      <div className="badge-row"><span className="wbadge purple">campus verified</span><span className="wbadge green">ready to sell</span></div>
+      <button className="btn" onClick={()=>onLogin(name||"Student",initials)}>start exploring →</button>
+    </div>
+  );
+  if(page==="login")return(
+    <div className="auth-page auth-form">
+      <button className="back-btn" onClick={()=>setPage("splash")}>←</button>
+      <h2>welcome back ✦</h2><p className="form-sub">log in to your thriftdrop account</p>
+      <button className="google-btn"><GoogleIcon/> continue with google</button>
+      <div className="divider"><hr/><span>or</span><hr/></div>
+      <div className="field"><label>college email</label><input type="email" placeholder="yourname@college.edu.in" value={email} onChange={e=>setEmail(e.target.value)}/></div>
+      <div className="field"><label>password</label><div className="pw-wrap"><input type={showPw?"text":"password"} placeholder="your password" value={pw} onChange={e=>setPw(e.target.value)}/><button className="pw-toggle" onClick={()=>setShowPw(p=>!p)}>{showPw?"🙈":"👁"}</button></div></div>
+      <div style={{textAlign:"right",marginBottom:14}}><a className="link" style={{fontSize:11}}>forgot password?</a></div>
+      {err&&<div className="err-msg">{err}</div>}
+      <button className="btn" onClick={doLogin}>log in →</button>
+      <p className="switch-txt" style={{marginTop:14}}>new here? <a onClick={()=>{setErr("");setPage("signup");}}>create account</a></p>
+    </div>
+  );
+  return null;
+}
+
+function Browse({onSelect}){
+  const [q,setQ]=useState("");
+  const [cat,setCat]=useState("all");
+  const [wished,setWished]=useState(new Set());
+  const filtered=ITEMS.filter(i=>(cat==="all"||i.cat===cat)&&(!q||(i.name.toLowerCase().includes(q.toLowerCase())||i.tags.some(t=>t.toLowerCase().includes(q.toLowerCase())))));
+  function toggleW(e,id){e.stopPropagation();setWished(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});}
+  const badgeLabel=b=>b==="hot"?"🔥 hot":b==="new-badge"?"✦ new":"fair";
+  return(
+    <div>
+      <div className="search-wrap"><div className="search-bar"><span style={{color:"var(--text3)",fontSize:14}}>⌕</span><input type="text" placeholder="search drip on campus..." value={q} onChange={e=>setQ(e.target.value)}/></div></div>
+      <div className="filter-row">{CATS.map(c=><button key={c} className={"chip"+(cat===c?" active":"")} onClick={()=>setCat(c)}>{c}</button>)}</div>
+      <div className="sec-label">{filtered.length} items near you ✦</div>
+      {filtered.length===0?<div style={{textAlign:"center",padding:"44px",fontSize:"13px",color:"var(--text3)"}}>no items found bestie</div>:
+      <div className="card-grid">{filtered.map(item=>(
+        <div key={item.id} className="card" onClick={()=>onSelect(item)}>
+          <div className="card-img" style={{background:item.bg}}>
+            <span>{item.emoji}</span>
+            <div className={"badge "+item.badge+" card-badge"}>{badgeLabel(item.badge)}</div>
+            <button className={"wish-btn"+(wished.has(item.id)?" wished":"")} onClick={e=>toggleW(e,item.id)}>{wished.has(item.id)?"♥":"♡"}</button>
+          </div>
+          <div className="card-body">
+            <div className="card-name">{item.name}</div>
+            <div className="card-price">₹{item.price}</div>
+            <div className="card-meta"><span>{item.condition}</span><span>{item.dropoff.split("·")[1]?.trim()}</span></div>
+          </div>
+        </div>
+      ))}</div>}
+    </div>
+  );
+}
+
+function Detail({item,onClose,onChat}){
+  const [bought,setBought]=useState(false);
+  return(
+    <div className="detail-overlay">
+      <div className="detail-img" style={{background:item.bg}}><button className="back-abs" onClick={onClose}>←</button><span>{item.emoji}</span></div>
+      <div className="detail-body">
+        <div className="detail-row"><div className="detail-name">{item.name}</div><div className="detail-price">₹{item.price}</div></div>
+        <div className="detail-sub">{item.condition} · {item.cat} · {item.tags.join(", ")}</div>
+        <div className="seller-row">
+          <div className="av" style={{width:36,height:36,background:item.sc,color:item.stc,fontSize:11}}>{item.si}</div>
+          <div><div className="seller-name">{item.seller}</div><div className="seller-sub">⭐ {item.rating}</div></div>
+          <div style={{marginLeft:"auto",fontSize:11,color:"var(--text3)"}}>view profile →</div>
+        </div>
+        <div className="detail-desc">{item.desc}</div>
+        <div className="tags-row">{item.tags.map(t=><span key={t} className="tag">{t}</span>)}</div>
+        <div className="del-note"><span>📍</span><span>delivered to your hostel · {item.dropoff}</span></div>
+        <div className="act-row">
+          <button className="btn outline" style={{flex:1}} onClick={onChat}>msg seller</button>
+          <button className={"btn"+(bought?" green":"")} style={{flex:2}} onClick={()=>setBought(true)}>{bought?"order placed! 🎉":"buy now · ₹"+item.price}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Sell(){
+  const [photos,setPhotos]=useState([]);
+  const [name,setName]=useState("");
+  const [price,setPrice]=useState("");
+  const [cat,setCat]=useState("Tops");
+  const [listed,setListed]=useState(false);
+  const EMOJIS=["👗","👖","🧥","👟","👜","📚","🎧"];
+  const CATS2=["Tops","Bottoms","Outerwear","Shoes","Accessories","Books","Electronics"];
+  function doList(){if(!name.trim()||!price.trim())return;setListed(true);}
+  return(
+    <div className="sell-wrap">
+      <h2>list an item ✦</h2>
+      {photos.length<5&&<div className="upload-box" onClick={()=>setPhotos(p=>[...p,EMOJIS[p.length%EMOJIS.length]])}>
+        <div className="upload-plus">+</div><div>tap to add photos</div><div style={{fontSize:10,color:"var(--text3)",marginTop:4,fontFamily:"'DM Mono',monospace"}}>up to 5 photos</div>
+      </div>}
+      {photos.length>0&&<div className="photo-preview">{photos.map((e,i)=><div key={i} className="photo-thumb">{e}</div>)}</div>}
+      <div className="field"><label>item name</label><input type="text" placeholder="e.g. vintage denim jacket" value={name} onChange={e=>setName(e.target.value)}/></div>
+      <div className="field"><label>price (₹)</label><input type="number" placeholder="e.g. 250" value={price} onChange={e=>setPrice(e.target.value)}/></div>
+      <div className="field"><label>category</label><div className="ctags">{CATS2.map(c=><button key={c} className={"chip"+(cat===c?" active":"")} onClick={()=>setCat(c)}>{c}</button>)}</div></div>
+      <div className="field"><label>condition</label><select><option>Like new</option><option>Good</option><option>Fair</option></select></div>
+      <div className="field"><label>drop-off point</label><select><option>main gate hostel block</option><option>library entrance</option><option>canteen area</option><option>sports complex</option><option>admin block</option></select></div>
+      <div className="field"><label>description (optional)</label><textarea placeholder="size, wear, vibe... be real with it"/></div>
+      <button className={"btn"+(listed?" green":"")} onClick={doList}>{listed?"listed! 🎉":"list item ✦"}</button>
+      {listed&&<div className="success-msg">ur item is live on campus! go off bestie 🔥</div>}
+    </div>
+  );
+}
+
+function TrackStep({done,active,label,last}){
+  return(
+    <div className="track-step">
+      <div className="track-left">
+        <div className={"dot "+(done?"dot-g":active?"dot-p":"dot-grey")}/>
+        {!last&&<div className="tline"/>}
+      </div>
+      <div className={"tlabel"+(done||active?" bold":"")+(active?" active-lbl":"")}>{label}</div>
+    </div>
+  );
+}
+
+function Delivery(){
+  return(
+    <div className="delivery-wrap">
+      <h2>my deliveries ✦</h2>
+      <div className="ord-card">
+        <div className="ord-head"><div className="ord-title">vintage denim jacket</div><div className="badge out">out for delivery</div></div>
+        <TrackStep done label="order placed"/>
+        <TrackStep done label="picked up from seller"/>
+        <TrackStep active label="on the way · ~8 min"/>
+        <TrackStep label="delivered to hostel gate" last/>
+        <div className="map-box">
+          <svg width="100%" height="100" viewBox="0 0 340 100" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="33" x2="340" y2="33" stroke="#2e2e42" strokeWidth="1"/>
+            <line x1="0" y1="66" x2="340" y2="66" stroke="#2e2e42" strokeWidth="1"/>
+            <line x1="85" y1="0" x2="85" y2="100" stroke="#2e2e42" strokeWidth="1"/>
+            <line x1="170" y1="0" x2="170" y2="100" stroke="#2e2e42" strokeWidth="1"/>
+            <line x1="255" y1="0" x2="255" y2="100" stroke="#2e2e42" strokeWidth="1"/>
+            <line x1="28" y1="12" x2="130" y2="54" stroke="#c084fc" strokeWidth="2" strokeDasharray="5,4"/>
+            <circle cx="26" cy="12" r="5" fill="#4ade80"/>
+            <circle cx="130" cy="54" r="6" fill="#c084fc"/>
+            <rect x="150" y="18" width="55" height="26" rx="4" fill="#1c1c26" stroke="#2e2e42" strokeWidth="0.5"/>
+            <text x="177" y="35" fontSize="8" fill="#606080" textAnchor="middle">Library</text>
+            <rect x="58" y="62" width="50" height="26" rx="4" fill="#1c1c26" stroke="#2e2e42" strokeWidth="0.5"/>
+            <text x="83" y="79" fontSize="8" fill="#606080" textAnchor="middle">Hostel A</text>
+            <text x="26" y="9" fontSize="7" fill="#4ade80" textAnchor="middle">seller</text>
+            <text x="136" y="68" fontSize="7" fill="#c084fc" textAnchor="middle">rider</text>
+          </svg>
+        </div>
+        <div className="rider-row">
+          <div className="av" style={{width:36,height:36,background:"rgba(192,132,252,.2)",color:"#c084fc",fontSize:11}}>RK</div>
+          <div><div className="rider-name">Rahul K.</div><div className="rider-sub">campus rider · ⭐ 4.9</div></div>
+          <button className="call-btn">call</button>
+        </div>
+      </div>
+      <div className="ord-card">
+        <div className="ord-head"><div className="ord-title">calculus textbook</div><div className="badge done">delivered</div></div>
+        <div style={{fontSize:11,color:"var(--text3)",fontFamily:"'DM Mono',monospace"}}>delivered to library entrance · 2 days ago</div>
+      </div>
+    </div>
+  );
+}
+
+function Chat(){
+  const [convos,setConvos]=useState(CONVOS_INIT);
+  const [open,setOpen]=useState(null);
+  const [input,setInput]=useState("");
+  const msgsRef=useRef(null);
+  useEffect(()=>{if(msgsRef.current)msgsRef.current.scrollTop=msgsRef.current.scrollHeight;},[open,convos]);
+  function send(){
+    const text=input.trim();if(!text||!open)return;
+    const now=new Date();const t=now.getHours()+":"+String(now.getMinutes()).padStart(2,"0");
+    setConvos(cs=>cs.map(c=>c.id===open?{...c,messages:[...c.messages,{me:true,text,time:t}],preview:text}:c));
+    setInput("");
+  }
+  const active=convos.find(c=>c.id===open);
+  if(open&&active)return(
+    <div className="chat-thread">
+      <div className="thread-hdr"><button className="back-btn" style={{marginBottom:0,fontSize:18}} onClick={()=>setOpen(null)}>←</button><div><div className="thread-name">{active.name}</div><div className="thread-sub">{active.about}</div></div></div>
+      <div className="msgs-area" ref={msgsRef}>{active.messages.map((m,i)=><div key={i} className={"msg "+(m.me?"me":"them")}><div className="bubble">{m.text}</div><div className="mtime">{m.time}</div></div>)}</div>
+      <div className="inp-row"><input type="text" placeholder="type something..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/><button className="send-btn" onClick={send}>➤</button></div>
+    </div>
+  );
+  return(
+    <div className="chat-list-view">
+      <h2>messages ✦</h2>
+      {convos.map(c=>(
+        <div key={c.id} className="ci" onClick={()=>setOpen(c.id)}>
+          <div className="av" style={{width:38,height:38,background:c.sc,color:c.stc,fontSize:11}}>{c.init}</div>
+          <div className="ci-meta"><div className="ci-name">{c.name}</div><div className="ci-prev">{c.preview}</div><div className="ci-time">{c.time}</div></div>
+          {c.unread&&<div className="unread-dot"/>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Profile({user,onLogout}){
+  return(
+    <div>
+      <div className="prof-banner"/>
+      <div className="prof-av-wrap"><div className="prof-av">{user.initials||"TD"}</div></div>
+      <div className="prof-body">
+        <div className="prof-name">{user.name}</div>
+        <div className="prof-sub">2nd year · cse · campus verified ✦</div>
+        <button className="btn outline" style={{marginBottom:16}}>edit profile</button>
+        <div className="prof-stats">
+          <div className="stat-card"><div className="stat-num">12</div><div className="stat-lbl">items sold</div></div>
+          <div className="stat-card"><div className="stat-num">4.9</div><div className="stat-lbl">rating</div></div>
+          <div className="stat-card"><div className="stat-num">₹2.4k</div><div className="stat-lbl">earned</div></div>
+        </div>
+        <div className="sec-title">active listings</div>
+        <div className="listing-row">
+          <div className="mini-card"><span className="mini-emoji">🧥</span><div><div className="mini-name">denim jacket</div><div className="mini-price">₹350</div><div className="mini-cond">like new</div></div></div>
+          <div className="mini-card"><span className="mini-emoji">📚</span><div><div className="mini-name">calculus 3rd ed.</div><div className="mini-price">₹120</div><div className="mini-cond">fair</div></div></div>
+        </div>
+        <div className="sec-title" style={{marginTop:18}}>reviews</div>
+        {[{name:"Priya G.",stars:5,text:"super fast delivery, exactly as described! bestie behaviour fr 💜"},{name:"Arjun S.",stars:5,text:"honest seller, great condition. 10/10 would buy again."},{name:"Dev P.",stars:4,text:"quick response, smooth transaction. no cap."}].map((r,i)=>(
+          <div key={i} className="review-item">
+            <div className="rev-head"><div className="rev-name">{r.name}</div><div className="stars">{"★".repeat(r.stars)}{"☆".repeat(5-r.stars)}</div></div>
+            <div className="rev-text">{r.text}</div>
+          </div>
+        ))}
+        <button className="btn red-outline" style={{marginTop:16}} onClick={onLogout}>log out</button>
+      </div>
+    </div>
+  );
+}
+
+const TABS=[
+  {id:"browse",icon:"🏷",label:"browse"},
+  {id:"sell",icon:"✦",label:"sell"},
+  {id:"delivery",icon:"📦",label:"delivery"},
+  {id:"chat",icon:"💬",label:"chat"},
+  {id:"profile",icon:"👤",label:"profile"},
+];
+
+function App(){
+  const [user,setUser]=useState(null);
+  const [tab,setTab]=useState("browse");
+  const [item,setItem]=useState(null);
+  if(!user)return(<div className="shell"><Auth onLogin={(name,initials)=>setUser({name,initials})}/></div>);
+  return(
+    <div className="shell">
+      <div className="topbar">
+        <div><div className="logo">thrift<span>drop</span><span style={{color:"#fb923c",fontSize:16}}> ✦</span></div><div className="tagline">campus only · always secondhand</div></div>
+        <div className="notif">🔔</div>
+      </div>
+      <div className="screen-area">
+        {tab==="browse"&&<Browse onSelect={setItem}/>}
+        {tab==="sell"&&<Sell/>}
+        {tab==="delivery"&&<Delivery/>}
+        {tab==="chat"&&<Chat/>}
+        {tab==="profile"&&<Profile user={user} onLogout={()=>{setUser(null);setTab("browse");}}/>}
+      </div>
+      {item&&<Detail item={item} onClose={()=>setItem(null)} onChat={()=>{setItem(null);setTab("chat");}}/>}
+      <div className="bottom-nav">
+        {TABS.map(t=><button key={t.id} className={"nav-btn"+(tab===t.id?" active":"")} onClick={()=>setTab(t.id)}><span className="nav-icon">{t.icon}</span><span>{t.label}</span></button>)}
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
